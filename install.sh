@@ -1,21 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ЗАМЕНИТЕ на адрес вашего репозитория после публикации на GitHub:
-REPO_URL="https://github.com/YOUR_USERNAME/vpn-status.git"
+# Прямые ссылки на файлы в репозитории (ветка main).
+BASE_URL="https://raw.githubusercontent.com/0riga/vpn-status/main"
 INSTALL_DIR="/root/vpn-status"
 
 command -v docker >/dev/null 2>&1 || { echo "Docker не найден. Установите Docker и повторите."; exit 1; }
-command -v git >/dev/null 2>&1    || { echo "git не найден. Установите: apt install -y git"; exit 1; }
 
 echo "== Установка vpn-status в $INSTALL_DIR =="
+mkdir -p "$INSTALL_DIR"
 
-if [ -d "$INSTALL_DIR/.git" ]; then
-    echo "Каталог уже существует, обновляю из репозитория..."
-    git -C "$INSTALL_DIR" pull
-else
-    git clone "$REPO_URL" "$INSTALL_DIR"
-fi
+for f in app.py Dockerfile docker-compose.yml; do
+    curl -fsSL "$BASE_URL/$f" -o "$INSTALL_DIR/$f"
+done
 
 cd "$INSTALL_DIR"
 
