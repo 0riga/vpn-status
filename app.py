@@ -59,18 +59,41 @@ def detect_protocol(container):
     return None
 
 
+# Однажды увиденные VPN-контейнеры: имя -> протокол. Нужно, чтобы если
+# контейнер не просто остановлен, а полностью удалён из Docker (и Docker
+# API о нём больше ничего не знает), он всё равно не пропадал молча из
+# ответа, а был явно помечен как недоступный.
+known_services = {}
+
+
 def collect_status():
-    results = []
+    current = {}
     for container in docker_containers():
         proto = detect_protocol(container)
         if not proto:
             continue
-        results.append({
+        name = container.get("Names", ["?"])[0].lstrip("/")
+        current[name] = {
             "protocol": proto,
-            "container": container.get("Names", ["?"])[0].lstrip("/"),
+            "container": name,
             "docker_status": container.get("State"),  # running / exited / restarting ...
             "up": container.get("State") == "running",
-        })
+        }
+
+    for name, info in current.items():
+        known_services[name] = info["protocol"]
+
+    results = []
+    for name, proto in known_services.items():
+        if name in current:
+            results.append(current[name])
+        else:
+            results.append({
+                "protocol": proto,
+                "container": name,
+                "docker_status": "removed",  # контейнера больше нет в Docker вообще
+                "up": False,
+            })
     return results
 
 
