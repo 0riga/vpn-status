@@ -16,8 +16,11 @@ done
 
 cd "$INSTALL_DIR"
 
-read -r -s -p "Введите API-токен (Enter — сгенерировать случайный): " TOKEN
-echo
+TOKEN=""
+if [ -r /dev/tty ]; then
+    read -r -s -p "Введите API-токен (Enter — сгенерировать случайный): " TOKEN < /dev/tty
+    echo
+fi
 if [ -z "$TOKEN" ]; then
     TOKEN=$(openssl rand -hex 32)
     echo "Сгенерирован токен: $TOKEN"
