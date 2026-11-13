@@ -1,0 +1,10 @@
+services:
+  vpn-status:
+    build: .
+    container_name: vpn-status
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - API_TOKEN=REPLACE_ME
